@@ -1,48 +1,31 @@
 steps:
-  # Build and push backend image
+  # Build and push backend image using Kaniko
   build-backend:
-    image: plugins/docker
-    settings:
-      repo: ${CI_REPO}
-      registry: ghcr.io
-      dockerfile: backend/Dockerfile
-      context: backend
-      tags:
-        - ${CI_COMMIT_SHA:0:8}
-        - latest
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
+    image: gcr.io/kaniko-project/executor:latest
+    commands:
+      - >
+        /kaniko/executor
+        --context=/woodpecker/src/github.com/${CI_REPO}/backend
+        --dockerfile=Dockerfile
+        --destination=ghcr.io/${CI_REPO}:${CI_COMMIT_SHA:0:8}
+        --destination=ghcr.io/${CI_REPO}:latest
+    environment:
+      - DOCKER_AUTH_CONFIG
+    secrets:
+      - docker_auth_config
 
-  # Build and push frontend image
+  # Build and push frontend image using Kaniko
   build-frontend:
-    image: plugins/docker
-    settings:
-      repo: ${CI_REPO}-frontend
-      registry: ghcr.io
-      dockerfile: frontend/Dockerfile
-      context: frontend
-      target: production
-      tags:
-        - ${CI_COMMIT_SHA:0:8}
-        - latest
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-
-  # Deploy to server (optional - uncomment and configure)
-  # deploy:
-  #   image: appleboy/drone-ssh
-  #   settings:
-  #     host:
-  #       from_secret: deploy_host
-  #     username:
-  #       from_secret: deploy_user
-  #     key:
-  #       from_secret: deploy_key
-  #     script:
-  #       - cd /opt/ugm_schedule
-  #       - docker compose pull
-  #       - docker compose up -d
+    image: gcr.io/kaniko-project/executor:latest
+    commands:
+      - >
+        /kaniko/executor
+        --context=/woodpecker/src/github.com/${CI_REPO}/frontend
+        --dockerfile=Dockerfile
+        --target=production
+        --destination=ghcr.io/${CI_REPO}-frontend:${CI_COMMIT_SHA:0:8}
+        --destination=ghcr.io/${CI_REPO}-frontend:latest
+    environment:
+      - DOCKER_AUTH_CONFIG
+    secrets:
+      - docker_auth_config
