@@ -133,7 +133,9 @@ class TopScoreSyncService:
                     if league:
                         stats["leagues"] += 1
                         stats["games"] += games_synced
+                    self.db.commit()  # Commit after each successful event
                 except Exception as e:
+                    self.db.rollback()  # Rollback failed event, continue with next
                     error_msg = f"Error syncing event {event_data.get('id')}: {e}"
                     logger.error(error_msg)
                     stats["errors"].append(error_msg)
@@ -278,9 +280,10 @@ class TopScoreSyncService:
 
         if location_data and isinstance(location_data, dict):
             field = self._get_or_create_field(location_data)
-        elif field_name and isinstance(field_name, str):
+        elif field_name:
             # Create field from field_name if no location object exists
-            field = self._get_or_create_field({"name": field_name})
+            # Convert to string if needed (API sometimes returns integers)
+            field = self._get_or_create_field({"name": str(field_name)})
 
         # Parse game date and time
         game_date = None

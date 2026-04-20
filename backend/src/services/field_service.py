@@ -62,6 +62,10 @@ class FieldService:
         Returns:
             Existing or newly created Field object
         """
+        # Ensure name is a string to prevent type mismatch errors
+        if not isinstance(name, str):
+            name = str(name) if name else "Unknown Field"
+
         field = db.query(Field).filter(Field.name == name).first()
 
         if field is None:
