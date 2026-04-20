@@ -1,31 +1,29 @@
 steps:
-  # Build and push backend image using Kaniko
-  build-backend:
-    image: gcr.io/kaniko-project/executor:latest
-    commands:
-      - >
-        /kaniko/executor
-        --context=/woodpecker/src/github.com/${CI_REPO}/backend
-        --dockerfile=Dockerfile
-        --destination=ghcr.io/${CI_REPO}:${CI_COMMIT_SHA:0:8}
-        --destination=ghcr.io/${CI_REPO}:latest
-    environment:
-      - DOCKER_AUTH_CONFIG
-    secrets:
-      - docker_auth_config
+  - name: build-backend
+    image: plugins/docker
+    settings:
+      repo: ghcr.io/dundee31416/ugm_schedule
+      registry: ghcr.io
+      dockerfile: backend/Dockerfile
+      context: backend
+      tags:
+        - latest
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
 
-  # Build and push frontend image using Kaniko
-  build-frontend:
-    image: gcr.io/kaniko-project/executor:latest
-    commands:
-      - >
-        /kaniko/executor
-        --context=/woodpecker/src/github.com/${CI_REPO}/frontend
-        --dockerfile=Dockerfile
-        --target=production
-        --destination=ghcr.io/${CI_REPO}-frontend:${CI_COMMIT_SHA:0:8}
-        --destination=ghcr.io/${CI_REPO}-frontend:latest
-    environment:
-      - DOCKER_AUTH_CONFIG
-    secrets:
-      - docker_auth_config
+  - name: build-frontend
+    image: plugins/docker
+    settings:
+      repo: ghcr.io/dundee31416/ugm_schedule-frontend
+      registry: ghcr.io
+      dockerfile: frontend/Dockerfile
+      context: frontend
+      target: production
+      tags:
+        - latest
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
