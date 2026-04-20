@@ -1,0 +1,48 @@
+steps:
+  # Build and push backend image
+  build-backend:
+    image: plugins/docker
+    settings:
+      repo: ${CI_REPO}
+      registry: ghcr.io
+      dockerfile: backend/Dockerfile
+      context: backend
+      tags:
+        - ${CI_COMMIT_SHA:0:8}
+        - latest
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+
+  # Build and push frontend image
+  build-frontend:
+    image: plugins/docker
+    settings:
+      repo: ${CI_REPO}-frontend
+      registry: ghcr.io
+      dockerfile: frontend/Dockerfile
+      context: frontend
+      target: production
+      tags:
+        - ${CI_COMMIT_SHA:0:8}
+        - latest
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+
+  # Deploy to server (optional - uncomment and configure)
+  # deploy:
+  #   image: appleboy/drone-ssh
+  #   settings:
+  #     host:
+  #       from_secret: deploy_host
+  #     username:
+  #       from_secret: deploy_user
+  #     key:
+  #       from_secret: deploy_key
+  #     script:
+  #       - cd /opt/ugm_schedule
+  #       - docker compose pull
+  #       - docker compose up -d

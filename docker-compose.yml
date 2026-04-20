@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: ugm_schedule_postgres
+    environment:
+      POSTGRES_USER: ugm_schedule
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ugm_schedule
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ugm_schedule"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ugm_schedule_backend
+    command: uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://ugm_schedule:password@postgres:5432/ugm_schedule
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=INFO
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+      - TOPSCORE_BASE_URL=https://aum.usetopscore.com
+      - TOPSCORE_CLIENT_ID=ID8TPU5gbZUKRTDgkMrlSaD0QsnGXrIznW
+      - TOPSCORE_CLIENT_SECRET=SCvRJH2i1dmV5YqKcbCas43rtaMMAsX2FK
+      - TOPSCORE_CSRF_TOKEN=WjdoZEY2T3ZxTEFrfDE3NzU2NTk3OTJ8OFZzV2dpMkhnaFhqRTcyV0hfRXdzbEdQMTdFWDIyalpMbExuMDJZMndrQQ
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: ugm_schedule_frontend
+    command: npm run dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

@@ -1,0 +1,17 @@
+# League sources configuration
+# Add league URLs here for automated scraping
+
+leagues:
+  - name: "Ligues Récréatives Hiver 2025-2026"
+    url: "https://montrealultimate.ca/fr_ca/e/ligues-recreatives-hiver-2025-2026"
+    enabled: true
+
+  # Example: Add more leagues below
+  # - name: "Summer League 2026"
+  #   url: "https://example.com/leagues/summer-2026"
+  #   enabled: false
+
+# Configuration notes:
+# - name: Display name for the league
+# - url: Full URL to the league's schedule page
+# - enabled: Set to false to temporarily disable scraping for this league

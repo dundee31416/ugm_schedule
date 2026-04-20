@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: ugm_schedule_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ugm_schedule}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_this_password}
+      POSTGRES_DB: ${POSTGRES_DB:-ugm_schedule}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ugm_schedule}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    image: ugm_schedule_backend:latest
+    container_name: ugm_schedule_backend
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-ugm_schedule}:${POSTGRES_PASSWORD:-change_this_password}@postgres:5432/${POSTGRES_DB:-ugm_schedule}
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost}
+      - TOPSCORE_BASE_URL=${TOPSCORE_BASE_URL:-https://aum.usetopscore.com}
+      - TOPSCORE_CLIENT_ID=${TOPSCORE_CLIENT_ID:-}
+      - TOPSCORE_CLIENT_SECRET=${TOPSCORE_CLIENT_SECRET:-}
+      - TOPSCORE_CSRF_TOKEN=${TOPSCORE_CSRF_TOKEN:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    image: ugm_schedule_frontend:latest
+    container_name: ugm_schedule_frontend
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
