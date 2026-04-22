@@ -29,6 +29,19 @@ steps:
       password:
         from_secret: docker_password
 
+  - name: prepare-deploy-dir
+    image: appleboy/drone-ssh
+    settings:
+      host:
+        from_secret: deploy_host
+      username:
+        from_secret: deploy_user
+      key:
+        from_secret: deploy_key
+      port: 22
+      script:
+        - mkdir -p /mnt/ssd_pool/apps_data/ugm_schedule
+
   - name: copy-compose
     image: appleboy/drone-scp
     settings:
@@ -40,7 +53,7 @@ steps:
         from_secret: deploy_key
       port: 22
       source: docker-compose.prod.yml
-      target: /mnt/ssd_pool/apps_data_ugm_schedule
+      target: /mnt/ssd_pool/apps_data/ugm_schedule
       strip_components: 0
 
   - name: deploy
@@ -54,8 +67,7 @@ steps:
         from_secret: deploy_key
       port: 22
       script:
-        - mkdir -p /mnt/ssd_pool/apps_data_ugm_schedule
-        - cd /mnt/ssd_pool/apps_data_ugm_schedule
+        - cd /mnt/ssd_pool/apps_data/ugm_schedule
         - docker compose -f docker-compose.prod.yml pull
         - docker compose -f docker-compose.prod.yml down
         - docker compose -f docker-compose.prod.yml up -d
