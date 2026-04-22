@@ -27,8 +27,12 @@ RUN touch src/__init__.py \
     && touch src/config/__init__.py \
     && touch src/utils/__init__.py
 
+# Copy and set up entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Expose port
 EXPOSE 8000
 
-# Command will be overridden by docker-compose
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
