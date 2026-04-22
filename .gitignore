@@ -76,6 +76,5 @@ coverage/
 Thumbs.db
 
 # Project specific
-backend/src/database/migrations/versions/*.py
 !backend/src/database/migrations/versions/.gitkeep
 /docker-images/
