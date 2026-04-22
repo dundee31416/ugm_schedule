@@ -66,9 +66,18 @@ steps:
       key:
         from_secret: deploy_key
       port: 22
+      envs:
+        - DOCKER_USERNAME
+        - DOCKER_PASSWORD
       script:
+        - echo "$DOCKER_PASSWORD" | docker login ghcr.io -u "$DOCKER_USERNAME" --password-stdin
         - mv /tmp/docker-compose.prod.yml /mnt/ssd_pool/apps_data/ugm_schedule/docker-compose.prod.yml
         - cd /mnt/ssd_pool/apps_data/ugm_schedule
         - docker compose -f docker-compose.prod.yml pull
         - docker compose -f docker-compose.prod.yml down
         - docker compose -f docker-compose.prod.yml up -d
+    environment:
+      DOCKER_USERNAME:
+        from_secret: docker_username
+      DOCKER_PASSWORD:
+        from_secret: docker_password
