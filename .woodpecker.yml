@@ -53,7 +53,7 @@ steps:
         from_secret: deploy_key
       port: 22
       source: docker-compose.prod.yml
-      target: /mnt/ssd_pool/apps_data/ugm_schedule
+      target: /tmp
       strip_components: 0
 
   - name: deploy
@@ -67,6 +67,7 @@ steps:
         from_secret: deploy_key
       port: 22
       script:
+        - mv /tmp/docker-compose.prod.yml /mnt/ssd_pool/apps_data/ugm_schedule/docker-compose.prod.yml
         - cd /mnt/ssd_pool/apps_data/ugm_schedule
         - docker compose -f docker-compose.prod.yml pull
         - docker compose -f docker-compose.prod.yml down
