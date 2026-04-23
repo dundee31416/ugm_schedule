@@ -49,10 +49,13 @@ class TopScoreSyncService:
             events = self.client.get_events()
             logger.info(f"Fetched {len(events)} events from TopScore")
 
-            # Find event by name (case-insensitive, partial match)
+            # Filter to League-type events only, then match by name
+            league_events = [e for e in events if e.get("event_type") == "League"]
+            logger.info(f"Filtered to {len(league_events)} League-type events")
+
             pattern_lower = event_name_pattern.lower()
             matching_events = [
-                e for e in events
+                e for e in league_events
                 if pattern_lower in e.get('name', '').lower() or
                    pattern_lower in e.get('slug', '').lower()
             ]
@@ -127,7 +130,10 @@ class TopScoreSyncService:
             events = self.client.get_events()
             logger.info(f"Fetched {len(events)} events from TopScore")
 
-            for event_data in events:
+            league_events = [e for e in events if e.get("event_type") == "League"]
+            logger.info(f"Filtered to {len(league_events)} League-type events (skipping {len(events) - len(league_events)} non-League events)")
+
+            for event_data in league_events:
                 try:
                     league, games_synced = self._sync_event(event_data)
                     if league:
