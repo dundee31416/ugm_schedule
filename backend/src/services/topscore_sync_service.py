@@ -49,9 +49,8 @@ class TopScoreSyncService:
             events = self.client.get_events()
             logger.info(f"Fetched {len(events)} events from TopScore")
 
-            # Filter to League-type events only, then match by name
-            league_events = [e for e in events if e.get("event_type") == "League"]
-            logger.info(f"Filtered to {len(league_events)} League-type events")
+            league_events = [e for e in events if e.get("type") == "league"]
+            logger.info(f"Filtered to {len(league_events)} league events")
 
             pattern_lower = event_name_pattern.lower()
             matching_events = [
@@ -130,13 +129,8 @@ class TopScoreSyncService:
             events = self.client.get_events()
             logger.info(f"Fetched {len(events)} events from TopScore")
 
-            if events:
-                sample = events[0]
-                type_fields = {k: sample[k] for k in sample if "type" in k.lower() or "kind" in k.lower()}
-                logger.info(f"Sample event type-related fields: {type_fields}")
-
-            league_events = [e for e in events if e.get("event_type") == "League"]
-            logger.info(f"Filtered to {len(league_events)} League-type events (skipping {len(events) - len(league_events)} non-League events)")
+            league_events = [e for e in events if e.get("type") == "league"]
+            logger.info(f"Filtered to {len(league_events)} league events (skipping {len(events) - len(league_events)} non-league events)")
 
             for event_data in league_events:
                 try:
