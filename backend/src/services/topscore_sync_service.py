@@ -130,6 +130,11 @@ class TopScoreSyncService:
             events = self.client.get_events()
             logger.info(f"Fetched {len(events)} events from TopScore")
 
+            if events:
+                sample = events[0]
+                type_fields = {k: sample[k] for k in sample if "type" in k.lower() or "kind" in k.lower()}
+                logger.info(f"Sample event type-related fields: {type_fields}")
+
             league_events = [e for e in events if e.get("event_type") == "League"]
             logger.info(f"Filtered to {len(league_events)} League-type events (skipping {len(events) - len(league_events)} non-League events)")
 
@@ -139,32 +144,12 @@ class TopScoreSyncService:
                     if league:
                         stats["leagues"] += 1
                         stats["games"] += games_synced
-                    self.db.commit()  # Commit after each successful event
+                    self.db.commit()
                 except Exception as e:
-                    self.db.rollback()  # Rollback failed event, continue with next
+                    self.db.rollback()
                     error_msg = f"Error syncing event {event_data.get('id')}: {e}"
                     logger.error(error_msg)
                     stats["errors"].append(error_msg)
-
-            # Sync standalone teams (if any exist outside of events)
-            try:
-                teams = self.client.get_teams()
-                logger.info(f"Fetched {len(teams)} teams from TopScore")
-                for team_data in teams:
-                    self._get_or_create_team(team_data)
-                    stats["teams"] += 1
-            except Exception as e:
-                logger.error(f"Error syncing teams: {e}")
-
-            # Sync locations (fields)
-            try:
-                locations = self.client.get_locations()
-                logger.info(f"Fetched {len(locations)} locations from TopScore")
-                for location_data in locations:
-                    self._get_or_create_field(location_data)
-                    stats["fields"] += 1
-            except Exception as e:
-                logger.error(f"Error syncing locations: {e}")
 
             self.db.commit()
             logger.info(f"Sync completed: {stats}")
